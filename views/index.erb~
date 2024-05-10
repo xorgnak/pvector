@@ -1,0 +1,11 @@
+<h1 style='width: 100%; text-align: center;'><span>=^.^=</span></h1>
+<div id='o'>
+<h3>Hello human. I am the pedicat.</h3>
+<p>I might be helpful, I might not.</p>
+<p>I have purrrrrrrrrsonality.</p>
+</div>
+<div id='i'>
+<h3>
+<input id='input' placeholder='insert your human speak.'><button id='send'>SEND</button>
+</h3>
+</div>

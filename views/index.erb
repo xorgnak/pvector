@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+  crossorigin="anonymous"></script>
+
+<meta meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+<body style='height: 100%; vertical-align: middle; font-family: monospace; margin: 0;'>
+<form action='/' method='post' style='margin: 0;'>
+<h1 style='width: 100%; text-align: center;'><span>=^.^=</span></h1>
+<div id='o' style='height: 50vh; width: 100%; text-align: center;'>
+<textarea id='output' style='height: 50vh; width: 100%; font-size: large;'>
+Hello human.
+I am the pedicat.
+I might be helpful, I might not.
+I have purrrrrrrrrsonality.
+</textarea>
+</div>
+<div id='i' style='margin: 3% 0 0 0;'>
+<textarea id='input' placeholder='insert human noise.' style='height: 20vh; width: 100%; '></textarea>
+<h1 style='width: 100%; text-align: center;'>
+<button id='send'>SEND</button>
+</h1>
+</div>
+</form>
+<script>
+$(document).on('click','#send',function(ev) { ev.preventDefault(); $.post('/', { i: $('#input').val() }, function(d) { $('#output').val(d.o); $('#input').val(''); }); });
+</script>
+<body>
+</html>
