@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rwordnet"
   spec.add_dependency "rackup"
   spec.add_dependency "sinatra"
+  spec.add_dependency "wikipedia-client"
 
   spec.add_dependency "llamafile"
   

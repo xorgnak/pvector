@@ -4,6 +4,7 @@ require "pstore"
 require "rwordnet"
 require "llamafile"
 require "sinatra/base"
+require "wikipedia"
 
 
 
@@ -13,6 +14,7 @@ require_relative "pvector/book"
 require_relative "pvector/title"
 require_relative "pvector/author"
 require_relative "pvector/word"
+require_relative "pvector/wiki"
 require_relative "pvector/input"
 require_relative "pvector/app"
 
@@ -34,7 +36,7 @@ module MIND
   end
 
   def self.normalize i
-    return i.downcase.gsub(", ", " ").gsub(". ","").gsub("! ","").gsub("; ","").gsub(": "," ").gsub("?","").strip
+    return i.downcase.gsub(", ", " ").gsub(". ","").gsub("! ","").gsub("; ","").gsub(": "," ").gsub("?","").gsub("'","").gsub('"',"").gsub("(","").gsub(")","").strip
   end
 
   def self.sanitize w
@@ -113,47 +115,24 @@ module MIND
     return a.shuffle.uniq.sample
   end
 
-  def self.respond h={}
-    if %[#{h[:context]}].length > 0
-      a = MIND.context(h[:context]).map { |k,v| %[#{k} is #{v}] }
-    else
-      a = []
-    end
+  def self.summary i
+    return WIKI[i][:summary]
+  end
 
-    aa = a.shuffle.uniq.join("\n").split("\n").compact
-    tok = MIND.normalize(aa.join("\n")).split(" ")
-    puts %[tokens[context]: #{tok.length}\na: #{aa}]
-    
-    if %[#{h[:vector]}].length > 0
-      if %[h[:input]].length > 0
-        ii = %[#{h[:vector]} #{h[:input]}]
-      else
-        ii = %[#{h[:vector]}]
-      end
-      a << MIND.thought(ii)
-    else
-      if %[#{h[:input]}].length > 0
-        ii = %[#{h[:input]}]
-      else
-        ii = %[]
-      end
-      a << ii
-    end
+  def self.lookup i
+    return WIKI[i][:text]
+  end
 
-    a << MIND.thought(ii)
-    
-    aa = a.shuffle.uniq.join("\n").split("\n").compact
-    tok = MIND.normalize(aa.join("\n")).split(" ")
-    puts %[tokens[vector]: #{tok.length}\na: #{aa}]
-    
-    if %[#{h[:llama]}].length > 0
-      a << Llamafile.llama(%[#{ii} #{h[:llama]}])[:output]
-      aa = a.shuffle.uniq.join("\n").split("\n").compact
-      tok = MIND.normalize(aa.join("\n")).split(" ")
-      puts %[tokens[llama]: #{tok.length}\na: #{aa}]
-    end
-    
-    return aa
+  def self.define i
+    return [ MIND.context(MIND.normalize(i)).map { |k,v| %[#{k} is #{v}] } ].flatten
+  end
+
+  def self.think *i
+    return [ MIND.thought(MIND.normalize(i.join(" "))) ].flatten
+  end
+  
+  def self.respond *i
+    return [ Llamafile.llama(MIND.normalize(i.join(" ")))[:output] ].flatten
   end
 end
 

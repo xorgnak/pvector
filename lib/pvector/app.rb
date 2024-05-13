@@ -8,19 +8,27 @@ end
 get('/') do
   erb :index
 end
-post('/') do
+before do
+  puts %[---> #{request.path} #{params}]
+end
+post('/define') do
   content_type 'application/json'
-  if %[#{params[:llama]}].length == 0 && %[#{params[:vector]}].length == 0
-    puts %[input]
-  elsif %[#{params[:vector]}].length == 0
-    puts %[lamma + input]
-  elsif %[#{params[:llama]}].length == 0
-    puts %[vector + input]
-  else
-    puts %[llama + vector + input]
-  end
-  o = MIND.respond(params)
-  puts "POST #{params} #{o}"
-  JSON.generate({ o: o })
+  JSON.generate({ o: MIND.define([ params[:i] ].flatten.join(" ")) })
+end
+post('/think') do
+  content_type 'application/json'
+  JSON.generate({ o: MIND.think([ params[:v], params[:i] ].flatten.join(" ")) })
+end
+post('/lookup') do
+  content_type 'application/json'
+  JSON.generate({ o: MIND.lookup(params[:i]) })
+end
+post('/summary') do
+  content_type 'application/json'
+  JSON.generate({ o: MIND.summary(params[:i]) })
+end
+post('/respond') do
+  content_type 'application/json'
+  JSON.generate({ o: MIND.respond([ params[:v], params[:l],  params[:i] ].flatten.join(" ")) })
 end
 end

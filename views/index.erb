@@ -1,36 +1,26 @@
 <!DOCTYPE html>
 <html>
-<head>
+    <head>
+<style>
+    details { border-top: thin solid grey; border-bottom: thin solid grey; }
+summary { border: thin dotted white; }
+ul { }
+</style>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
   integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
   crossorigin="anonymous"></script>
 
 <meta meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 </head>
-<body style='height: 100%; vertical-align: middle; font-family: monospace; margin: 0;'>
+    <body style='height: 100vh; vertical-align: middle; font-family: monospace; margin: 0; background-color: black; color: white;'>
 <form action='/' method='post' style='margin: 0;'>
-<div id='o' style='width: 100%; text-align: center;'>
-<div id='output' style='height: 85vh; width: 100%; overflow-y: scroll;'>
+<div id='o' style='width: 100%;'>
+    <div id='output' style='height: 100vh; width: 100%; overflow-y: scroll;'>
 <p></p>
 </div>
 </div>
 <div id='i' style='margin: 3% 0 0 0; position: fixed; bottom: 0; width: 100%; text-align: center;'>
-  <datalist id='context_list'>
-    <option value="There was one time in a place where something happened.">
-  </datalist>
-  <input class='q' id='context' list='context_list' placeholder='background' style='width: 96%;'>
-  <datalist id='vector_list'>
-    <option value="I like vegetables and want to live better and healthier.">
-    <option value="I like my steaks cooked medium and my coffee with cream and sugar.">
-  </datalist>  
-  <input class='q' id='vector' list='vector_list' placeholder='reference' style='width: 96%;'>
-  <datalist id='input_list'>
-    <option value="I am from smalltown, USA and I like it that way.">
-    <option value="I need to bond with my cat.  They like mice but I can't get them to chase their tail.">
-    <option value="I need a recipie to feed three people including a can of chicken and a can of green beans.">  
-  </datalist>  
-  <input class='q' id='input' list='input_list' placeholder='prompt' style='width: 96%;'>
-  <datalist id='llama_list' class='q'>
+  <datalist id='input_list' class='q'>
     <option value="Respond.">
     <option value="Write a poem.">
     <option value="Tell a story.">
@@ -39,34 +29,52 @@
     <option value="Explain.">
     <option value="Simplify.">  
   </datalist>
-  <input class='q' id='llama' list='llama_list' placeholder='action' style='width: 96%;'>
+  <input class='q' id='input' list='input_list' placeholder='action' style='width: 96%;'>
   <h1 class='q' style='width: 100%; text-align: center;'>
     <button id='send' style='width: 94%; border: thin outset green;'>SEND</button>
   </h1>
 </div>
 </form>
 <script>
-  function log(f,s) { console.log("LOG",f,s); }
-  function post() {
-      h = { input: $('#input').val(), context: $('#context').val(), vector: $('#vector').val(), llama: $('#llama').val() };
-      log('post', h);
-      output(['Let me think about it...']);
-      reset();
-      $.post('/', h, function(d) {
-	  log('POST',d);
-	  output(d.o);
-      });
-  }
-  function reset() { $('#input').val(''); $('#vector').val(''); $('#llama').val(''); $('#context').val(''); $('.q').hide(); }
-  function output(s) {
-      log('output', s);
-      $('#output').html("");
-      $.each(s, function(i, e) { $('#output').append("<p style='margin: 3%;'>" + e + '</p>'); });
-  }
-  $(document).on('click','#send',function(ev) { ev.preventDefault(); log('#send',); post(); });
-  $(document).on('click','.v',function(ev) { ev.preventDefault(); log('.send',); $('#vector').val($(this).val()); });
-  $(document).on('click','.l',function(ev) { ev.preventDefault(); log('.send',); $('#llama').val($(this).val()); });
-  $(document).on('click','.i',function(ev) { ev.preventDefault(); log('.send',); $('#input').val($(this).val()); });
+    function log(f,s) { console.log("LOG",f,s); }
+function post() {
+    var i = $('#input').val();
+    output('INPUT', [i],'closed');
+    reset();
+    $.post('/define', { i: [ i ] }, function(d) {
+	log('POST[define]',d);
+	output('KNOWLEDGE', d.o,'closed');
+	$.post('/think', { i:  i, v: d.o }, function(dd) {
+	    log('POST[think]',dd);
+	    output('MEMORIES', dd.o,'closed');
+	    $.post('/lookup', { i: i }, function(dds) {
+		log('POST[lookup]',dds);
+		output('LOOKUP', dds.o, 'closed');
+		$.post('/summary', { i: i }, function(dss) {
+                    log('POST[summary]',dss);
+                    output('SUMMARY', dss.o, 'open');		
+		});
+	    });
+            $.post('/respond', { i: i, v: d.o, l: dd.o }, function(ddd) {
+                log('POST[respond]',ddd);
+                output('RESPONSE', ddd.o, 'open');
+            });
+	});
+    });
+}
+function clear() { $('#output').html(""); }
+function reset() { $('#input').val(''); $('.q').hide(); }
+
+function output(d, s, o) {
+    log('output', d, s);
+    var ht = "<details " + o + "><summary>" + d + "</summary><ul>";
+    $.each(s, function(i, e) { ht += "<li style='margin: 3%;'>" + e + '</li>'; });
+    ht += "</ul></summary>";
+    $('#output').append(ht);
+}
+
+$(document).on('click','#send',function(ev) { ev.preventDefault(); log('#send',); post(); });
+$(document).on('click','.i',function(ev) { ev.preventDefault(); log('.i', $(this)); $('#input').val($(this).val()); });
 </script>
-<body>
+</body>
 </html>
