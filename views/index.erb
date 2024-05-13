@@ -46,7 +46,6 @@ ul { }
     </datalist>
     <h1 style='width: 100%; text-align: center;'>
     <input class='q' id='q_input' list='q_list' style='width: 80%;' placeholder='query'>
-    <textarea class='a' id='context' style='width: 96%; color: black; background-color: white; display: none;' disabled></textarea>
     <input class='a' id='a_input' list='a_list' placeholder='input' style='width: 80%; display: none;'>
     <button id='send' style='border: thin outset green;'>&nbsp;</button>
   </h1>    
@@ -78,6 +77,7 @@ function post() {
 		    context += dss.o.join(" ");
 		    $('#context').text(context);
 		    $('.a').show();
+		    $('#send').show();
 		});
 	    });
 	});
@@ -85,7 +85,9 @@ function post() {
 }
 
 function init() {
-    $.post('/respond', { i: $('#a_input').val(), l: context }, function(ddd) {
+    var i = $('#a_input').val();
+    reset();
+    $.post('/respond', { i: i, l: context }, function(ddd) {
                 log('POST[respond]',ddd);
         output('RESPONSE', ddd.o, 'open');
 	$('.a').hide();
@@ -94,7 +96,7 @@ function init() {
 }
 
 function clear() { $('#output').html(""); }
-function reset() { $('#input').val(''); $('.q').hide(); }
+function reset() { $('#input').val(''); $('.q').hide(); $('.a').hide(); }
 
 function output(d, s, o) {
     log('output', d, s);
@@ -106,6 +108,7 @@ function output(d, s, o) {
 
 $(document).on('click','#send',function(ev) {
     ev.preventDefault();
+    $('#send').hide();
     if (context === "") {
 	post();
     } else {
