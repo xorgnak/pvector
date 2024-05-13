@@ -29,6 +29,6 @@ post('/summary') do
 end
 post('/respond') do
   content_type 'application/json'
-  JSON.generate({ o: MIND.respond([ params[:v], params[:l],  params[:i] ].flatten.join(" ")) })
+  JSON.generate({ o: MIND.respond([ params[:l],  params[:i] ].flatten.join(" ")) })
 end
 end
