@@ -44,6 +44,9 @@ module BOOK
   def self.[] k
     @@BOOKS[k]
   end
+  def self.keys
+    @@BOOKS.keys
+  end
   def self.match *x
     h = {}
     @@BOOKS.each_pair { |k,v| h[k] = v.match(x) }

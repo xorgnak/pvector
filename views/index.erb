@@ -16,7 +16,17 @@ ul { }
 <form action='/' method='post' style='margin: 0;'>
 <div id='o' style='width: 100%;'>
     <div id='output' style='height: 100vh; width: 100%; overflow-y: scroll;'>
-<p></p>
+    <details open>
+    <summary>hi.</summary>
+    <ul>
+    <li>I am a no-cloud AI named <a href='https://github.com/xorgnak/z4' style='text-decoration: none; color: green;'>z4</a>.</li>
+    <li>I know about <%= WIKI.keys.length %> topics.</li>
+    <li>I have read <%= BOOK.keys.length %> books.</li>
+    <li>By <%= AUTHOR.keys.length %> authors.</li>
+    <li>And I will try to help as best I can.</li>
+    <li><a href='https://github.com/xorgnak/pvector' style='text-decoration: none; color: gold;'>share</a> and enjoy. <a href='https://www.buymeacoffee.com/maxcatman' style='text-decoration: none; color: red;'>&lt;3</a></li>
+    </ul>
+    </details>
 </div>
 </div>
 <div id='i' style='margin: 3% 0 0 0; position: fixed; bottom: 0; width: 100%; text-align: center;'>
@@ -29,7 +39,7 @@ ul { }
     <option value="Explain.">
     <option value="Simplify.">  
   </datalist>
-  <input class='q' id='input' list='input_list' placeholder='action' style='width: 96%;'>
+  <input class='q' id='input' list='input_list' placeholder='input' value='What is the meaning of life?' style='width: 96%;'>
   <h1 class='q' style='width: 100%; text-align: center;'>
     <button id='send' style='width: 94%; border: thin outset green;'>SEND</button>
   </h1>
