@@ -10,6 +10,17 @@ get('/') do
 end
 post('/') do
   content_type 'application/json'
-  JSON.generate({ i: params[:i], o: MIND[params[:i]].join("\n\n") })
+  if %[#{params[:llama]}].length == 0 && %[#{params[:vector]}].length == 0
+    puts %[input]
+  elsif %[#{params[:vector]}].length == 0
+    puts %[lamma + input]
+  elsif %[#{params[:llama]}].length == 0
+    puts %[vector + input]
+  else
+    puts %[llama + vector + input]
+  end
+  o = MIND.respond(params)
+  puts "POST #{params} #{o}"
+  JSON.generate({ o: o })
 end
 end

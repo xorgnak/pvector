@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     pvector (0.1.0)
+      llamafile
       pstore
       rackup
       rwordnet
@@ -11,6 +12,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     base64 (0.2.0)
+    llamafile (0.1.1)
     mustermann (3.0.0)
       ruby2_keywords (~> 0.0.1)
     pstore (0.1.3)

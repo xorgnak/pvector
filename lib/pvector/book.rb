@@ -18,12 +18,25 @@ module BOOK
     def [] k
       @db.transaction { |db| db[k] }
     end
-    def match k
-      a = []
-      r = /\s#{k}\s/
-      @db.transaction { |db| db.keys.each { |e| if r.match(db[e]); a << e; end } }
-      return a
+    def match *kk
+      h = Hash.new { |hh,kx| hh[kx] = [] }
+      [kk].flatten.each do |k|
+
+        if WORD.define(k).length > 0
+          r = /\s#{k}\s/
+          @db.transaction do |db|
+            db.keys.each do |e|
+              if r.match(db[e]);
+                h[e] << k
+              end
+            end
+          end
+        end
+               
+      end
+      return h
     end
+    
     def each_pair &b
       @db.transaction { |db| db.keys.each { |e| b.call(e, db[e]) } }
     end
@@ -31,7 +44,7 @@ module BOOK
   def self.[] k
     @@BOOKS[k]
   end
-  def self.find x
+  def self.match *x
     h = {}
     @@BOOKS.each_pair { |k,v| h[k] = v.match(x) }
     return h

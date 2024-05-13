@@ -1,7 +1,8 @@
 module INPUT
   def self.[] i
     h = {}
-    i.split(" ").each { |e| x = WORD[e]; if x.length > 0; h[e] = x[0]; end }
+    ie = MIND.normalize(i).split(" ")
+    ie.each { |e| h[e] = WORD.context(e,ie); }
     return h
   end
 end

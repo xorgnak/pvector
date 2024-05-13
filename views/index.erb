@@ -9,24 +9,63 @@
 </head>
 <body style='height: 100%; vertical-align: middle; font-family: monospace; margin: 0;'>
 <form action='/' method='post' style='margin: 0;'>
-<h1 style='width: 100%; text-align: center;'><span>=^.^=</span></h1>
-<div id='o' style='height: 50vh; width: 100%; text-align: center;'>
-<textarea id='output' style='height: 50vh; width: 100%; font-size: large;'>
-Hello human.
-I am the pedicat.
-I might be helpful, I might not.
-I have purrrrrrrrrsonality.
-</textarea>
+<div id='o' style='width: 100%; text-align: center;'>
+<div id='output' style='height: 85vh; width: 100%; overflow-y: scroll;'>
+<p></p>
 </div>
-<div id='i' style='margin: 3% 0 0 0;'>
-<textarea id='input' placeholder='insert human noise.' style='height: 20vh; width: 100%; '></textarea>
-<h1 style='width: 100%; text-align: center;'>
-<button id='send'>SEND</button>
-</h1>
+</div>
+<div id='i' style='margin: 3% 0 0 0; position: fixed; bottom: 0; width: 100%; text-align: center;'>
+  <datalist id='context_list'>
+    <option value="There was one time in a place where something happened.">
+  </datalist>
+  <input class='q' id='context' list='context_list' placeholder='background' style='width: 96%;'>
+  <datalist id='vector_list'>
+    <option value="I like vegetables and want to live better and healthier.">
+    <option value="I like my steaks cooked medium and my coffee with cream and sugar.">
+  </datalist>  
+  <input class='q' id='vector' list='vector_list' placeholder='reference' style='width: 96%;'>
+  <datalist id='input_list'>
+    <option value="I am from smalltown, USA and I like it that way.">
+    <option value="I need to bond with my cat.  They like mice but I can't get them to chase their tail.">
+    <option value="I need a recipie to feed three people including a can of chicken and a can of green beans.">  
+  </datalist>  
+  <input class='q' id='input' list='input_list' placeholder='prompt' style='width: 96%;'>
+  <select id='llama' class='q'>
+    <option value="Respond." selected>respond</option>
+    <option value="Write me a poem.">poem</option>
+    <option value="Tell me a story.">story</option>
+    <option value="Create recipie.">recipie</option>
+    <option value="Summarize.">summarize</option>
+    <option value="Explain.">explain</option>
+    <option value="Simplify.">simplify</option>  
+  </select> 
+  <h1 class='q' style='width: 100%; text-align: center;'>
+    <button id='send' style='width: 94%; border: thin outset green;'>SEND</button>
+  </h1>
 </div>
 </form>
 <script>
-$(document).on('click','#send',function(ev) { ev.preventDefault(); $.post('/', { i: $('#input').val() }, function(d) { $('#output').val(d.o); $('#input').val(''); }); });
+  function log(f,s) { console.log("LOG",f,s); }
+  function post() {
+      h = { input: $('#input').val(), context: $('#context').val(), vector: $('#vector').val(), llama: $('#llama').val() };
+      log('post', h);
+      output(['Let me think about it...']);
+      reset();
+      $.post('/', h, function(d) {
+	  log('POST',d);
+	  output(d.o);
+      });
+  }
+  function reset() { $('#input').val(''); $('#vector').val(''); $('#llama').val(''); $('#context').val(''); $('.q').hide(); }
+  function output(s) {
+      log('output', s);
+      $('#output').html("");
+      $.each(s, function(i, e) { $('#output').append("<p style='margin: 3%;'>" + e + '</p>'); });
+  }
+  $(document).on('click','#send',function(ev) { ev.preventDefault(); log('#send',); post(); });
+  $(document).on('click','.v',function(ev) { ev.preventDefault(); log('.send',); $('#vector').val($(this).val()); });
+  $(document).on('click','.l',function(ev) { ev.preventDefault(); log('.send',); $('#llama').val($(this).val()); });
+  $(document).on('click','.i',function(ev) { ev.preventDefault(); log('.send',); $('#input').val($(this).val()); });
 </script>
 <body>
 </html>

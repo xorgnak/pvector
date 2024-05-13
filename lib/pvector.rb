@@ -2,8 +2,10 @@
 
 require "pstore"
 require "rwordnet"
-require "rackup"
+require "llamafile"
 require "sinatra/base"
+
+
 
 require_relative "pvector/version"
 
@@ -18,71 +20,151 @@ module Pvector
   class Error < StandardError; end
 end
 module MIND
+  @@CONF = {
+    wonder: 3,
+    min: 4,
+    max: 32
+  }
+  def self.conf
+    @@CONF
+  end
+  
   def self.learn!
     Dir['books/*'].each { |book| MIND << book }
   end
+
+  def self.normalize i
+    return i.downcase.gsub(", ", " ").gsub(". ","").gsub("! ","").gsub("; ","").gsub(": "," ").gsub("?","").strip
+  end
+
+  def self.sanitize w
+    return w.gsub("(", "").gsub(")", "").gsub("<","").gsub(">","").gsub("[","").gsub("]","").gsub("{","").gsub("}","").gsub('?',"").gsub('$',"").gsub("^","").gsub(".","").gsub("*","")
+  end
+  
   def self.<< book
     _a, _t = book.gsub("books/","").gsub(".txt","").split("-")
-    TITLE[_t][:author] = _a
-    AUTHOR[_a][:books] ||= []
-    AUTHOR[_a][:books] << _t
-    AUTHOR[_a][:books].uniq!
+    _aa = _a.gsub("_"," ")
+    _tt = _t.gsub("_"," ")
+    TITLE[_tt][:author] = _a
+    AUTHOR[_aa][:books] ||= []
+    AUTHOR[_aa][:books] << _t
+    AUTHOR[_aa][:books].uniq!
     File.read(book).gsub(/\n\n+/,"\n\n").split("\n\n").each do |paragraph|
       input = paragraph.gsub(/\n/, " ")
-      puts %[BOOK[#{_t}][#{BOOK[_t].length}]: #{input}]
-      BOOK[_t] << input
-      INPUT[input].each_pair { |k,v| TITLE[_t][k] = v }
+      inp_s = MIND.normalize(input)
+      inp_a = inp_s.split(" ")
+      if inp_a.length >= @@CONF[:min] && inp_a.length <= @@CONF[:max]
+        puts %[BOOK[#{_tt}][#{BOOK[_tt].length}]: #{inp_a.length} tokens]
+        BOOK[_tt] << input
+        INPUT[input].each_pair { |k,v| TITLE[_tt][k] = v }
+      end
     end
   end
+  
   def self.author
     AUTHOR
   end
+
   def self.book
     BOOK
   end
+
   def self.title
     TITLE
   end
-  def self.about k
-    BOOK.find(k)
-  end
-  def self.idea k
-    h = {}
-    MIND.about(k).each_pair { |k,v| h[k] = BOOK[k][v.sample] }
+
+  def self.context i
+    ii, h = MIND.normalize(i).split(" "), {}
+    ii.map { |e| c = WORD.context(MIND.sanitize(e), ii); if %[#{c}].length > 0; h[e] = c; end }
     return h
   end
-  def self.keywords k
-    h = {}
-    INPUT[k].keys.each { |e| h[e] = MIND.idea(e) }
-    return h
+  
+  def self.match *k
+    BOOK.match([k].flatten)
   end
-  def self.[] k
-    a = []
-    MIND.keywords(k).each_pair { |kk,v|
-      x = v.keys.sample;
-      if rand(0..3) == 0
-        a << %[What is #{kk}?];
-      end
-      a << v[x];
-      if rand(0..2) == 0
-        if rand() == 0
-          a << %[#{kk} is #{WORD[kk][0]}]
-        else
-          a << WORD[kk][0];
+  
+  def self.score *kk
+    h = Hash.new { |hh,hk| hh[hk] = {} }
+    MIND.match([kk].flatten).each_pair do |title,v|
+      if v.keys.length > 0
+        h[title][:title] = title
+        h[title][:author] = TITLE[title][:author]
+        v.each_pair do |section,keywords|
+          h[title][:keywords] ||= {}
+          keywords.each_with_index do |keyword, i|
+            entry = BOOK[title][section]
+            h[title][:keywords][keyword] ||= {} 
+            h[title][:keywords][keyword][i] = { section: section, entry: entry, context: WORD.context(keyword, entry) }
+          end
         end
       end
+    end
+    return h
+  end
+  
+  def self.thought i
+    a = []; MIND.score(MIND.normalize(i).split(" ")).each_pair { |k,v|
+      v[:keywords].each_pair { |kk,vv|
+        vv.each_pair { |kkk,vvv|         
+          a << vvv[:entry]
+        }
+      }
     }
-    return a.uniq
+    return a.shuffle.uniq.sample
+  end
+
+  def self.respond h={}
+    if %[#{h[:context]}].length > 0
+      a = MIND.context(h[:context]).map { |k,v| %[#{k} is #{v}] }
+    else
+      a = []
+    end
+
+    aa = a.shuffle.uniq.join("\n").split("\n").compact
+    tok = MIND.normalize(aa.join("\n")).split(" ")
+    puts %[tokens[context]: #{tok.length}\na: #{aa}]
+    
+    if %[#{h[:vector]}].length > 0
+      if %[h[:input]].length > 0
+        ii = %[#{h[:vector]} #{h[:input]}]
+      else
+        ii = %[#{h[:vector]}]
+      end
+      a << MIND.thought(ii)
+    else
+      if %[#{h[:input]}].length > 0
+        ii = %[#{h[:input]}]
+      else
+        ii = %[]
+      end
+      a << ii
+    end
+
+    a << MIND.thought(ii)
+    
+    aa = a.shuffle.uniq.join("\n").split("\n").compact
+    tok = MIND.normalize(aa.join("\n")).split(" ")
+    puts %[tokens[vector]: #{tok.length}\na: #{aa}]
+    
+    if %[#{h[:llama]}].length > 0
+      a << Llamafile.llama(%[#{ii} #{h[:llama]}])[:output]
+      aa = a.shuffle.uniq.join("\n").split("\n").compact
+      tok = MIND.normalize(aa.join("\n")).split(" ")
+      puts %[tokens[llama]: #{tok.length}\na: #{aa}]
+    end
+    
+    return aa
   end
 end
 
 Dir['books/*'].each { |e|
   _a, _t = e.gsub("books/","").gsub(".txt","").split("-")
-  BOOK[_t]
-  TITLE[_t]
-  AUTHOR[_a]
+  _aa = _a.gsub("_"," ")
+  _tt = _t.gsub("_"," ")
+  BOOK[_tt]
+  TITLE[_tt]
+  AUTHOR[_aa]
 }
 
 Process.detach(fork { App.run! })
 
-#ARGF.argv.each { |e| puts %[READING: #{e}]; MIND << e }
