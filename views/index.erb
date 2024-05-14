@@ -73,7 +73,7 @@ function post() {
 		$.post('/summary', { i: i }, function(dss) {
                     log('POST[summary]',dss);
                     output('SUMMARY', dss.o, 'open');
-		    context += dds.o.join(" ");
+		    context += dss.o.join(" ");
 		    $('#context').text(context);
 		    $('.a').show();
 		    $('#send').show();
