@@ -70,10 +70,10 @@ function post() {
 	    $.post('/lookup', { i: i }, function(dds) {
 		log('POST[lookup]',dds);
 		output('LOOKUP', dds.o, 'closed');
-		context += dds.o.join(" ");
 		$.post('/summary', { i: i }, function(dss) {
                     log('POST[summary]',dss);
                     output('SUMMARY', dss.o, 'open');
+		    context += dds.o.join(" ");
 		    $('#context').text(context);
 		    $('.a').show();
 		    $('#send').show();
