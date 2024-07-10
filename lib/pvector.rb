@@ -5,8 +5,7 @@ require "rwordnet"
 require "llamafile"
 require "sinatra/base"
 require "wikipedia"
-
-
+require 'serialport'
 
 require_relative "pvector/version"
 
@@ -17,6 +16,7 @@ require_relative "pvector/word"
 require_relative "pvector/wiki"
 require_relative "pvector/input"
 require_relative "pvector/app"
+require_relative "pvector/z4"
 
 module Pvector
   class Error < StandardError; end

@@ -1,0 +1,159 @@
+require 'serialport'
+
+class Tty
+  def initialize port
+    @sp = SerialPort.new(port, 115200, 8, 1, SerialPort::NONE)
+  end
+
+  def sp
+    @sp
+  end
+  
+  def shutdown reason 
+    return if @sp==nil
+    return if reason==:int
+    printf("\nshutting down serial (%s)\n", reason)
+    # you may write something before closing tty
+    @sp.write(0x00)
+    @sp.flush()
+    printf("done\n")
+  end
+  
+  def read
+    a = []
+
+    x = @sp.gets
+    while x != nil
+      a << x
+      x = @sp.gets
+    end
+    return a.join("")
+  end
+  
+  def write x
+    @sp.puts(x)
+    flush
+  end
+  
+  def flush
+    @sp.flush
+  end
+end
+
+module IOT
+  module EV
+    class Ev
+      def initialize k
+        @id = k
+        @a = []
+      end
+      def << i
+        @a << i
+      end
+      def to_ev
+        @a.join(" ")
+      end
+    end
+    @@EV = Hash.new { |h,k| h[k] = Ev.new(k) }
+    def self.[] k
+      @@EV[k]
+    end
+    def self.keys
+      @@EV.keys
+    end
+    
+    @@BS = []
+    def self.bootstrap i
+      @@BS << i
+    end
+  
+    def self.bootstrap!
+      @@BS.each { |e| IOT.puts(e) }
+      @@EV.keys.each { |e| IOT.on(e, EV[e].to_ev) }
+    end
+  end
+  
+  @@TTY = Hash.new { |h,k|
+    h[k] = Tty.new(k) }
+  def self.puts i
+    @@TTY.each_pair { |k,v| v.write(i) }
+  end
+  def self.[] k
+    @@TTY[k]
+  end
+  def self.keys
+    @@TTY.keys
+  end
+
+  def self.gets
+    a = []
+    @@TTY.each_pair { |k,v| a << %[#{v.read}] }
+    return a.join("\n")
+  end
+
+  def self.ok!
+    IOT.puts %[ok();]
+  end
+
+  def self.hi!
+    IOT.puts %[hi();]
+  end
+
+  def self.hi k
+    IOT.puts %[hi('#{k}');]
+  end
+
+  def self.cue!
+    IOT.puts %[cue();]
+  end
+
+  def self.cue k
+    IOT.puts %[cue('#{k}');]
+  end
+
+  def self.<< i
+    IOT.puts i
+  end
+
+  def self.on k,v
+    IOT.puts %[on('#{k}',[[#{v}]]);]
+  end
+
+  def self.run k
+    IOT.puts %[run('#{k}');]
+  end
+
+  def self.mk c
+    IOT.puts %[mk('#{c}');]
+  end
+
+  def self.rm e
+    IOT.puts %[rm('#{e}');]
+  end
+
+  def self.ls *k
+    if k[0]
+      IOT.puts %[ls('#{k[0]}')]
+    else
+      IOT.puts %[ls();]
+    end
+  end
+  
+  Dir['/dev/ttyUSB*'].each { |e| @@TTY[e].write(%[ok();]) }
+end
+Process.detach(fork {
+                 a = []
+                 while true do
+                   x = IOT.gets;
+                   if /^.*\n$/.match(a.join(""))
+                     puts a.join("")
+                     a = []
+                   else
+                     a << x
+                   end
+                 end
+               })
+
+# entry point
+IOT::EV['/ok'] << %[me(35); nm(1,'zyphr','password'); net = 'Pedicab456';]
+
