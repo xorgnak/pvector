@@ -41,7 +41,15 @@ Gem::Specification.new do |spec|
   spec.add_dependency "serialport"
 
   spec.add_dependency "llamafile"
-  
+
+  spec.add_dependency "remind"
+
+  spec.add_dependency "meiou"
+
+  spec.add_dependency "fortunecookie"
+
+  spec.add_dependency "cardtrick"
+
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 end
