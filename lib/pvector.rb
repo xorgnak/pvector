@@ -7,6 +7,12 @@ require "sinatra/base"
 require "wikipedia"
 require 'serialport'
 
+require 'fortunecookie'
+require 'meiou'
+require 'remind'
+require 'cardtrick'
+require 'maiden'
+
 require_relative "pvector/version"
 
 require_relative "pvector/book"
