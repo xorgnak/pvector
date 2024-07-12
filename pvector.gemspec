@@ -42,7 +42,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "llamafile"
 
-  spec.add_dependency "remind"
+  spec.add_dependency "gnu-remind"
 
   spec.add_dependency "meiou"
 
