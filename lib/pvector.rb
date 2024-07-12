@@ -8,7 +8,7 @@ require "wikipedia"
 require 'serialport'
 
 require 'fortunecookie'
-require 'meiou'
+#require 'meiou'
 require 'remind'
 require 'cardtrick'
 require 'maiden'
